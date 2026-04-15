@@ -1,0 +1,35 @@
+---
+description: Chat WebSocket placement and event names
+globs: src/features/chat/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Chat socket conventions
+
+## Placement
+
+- **Low-level client** (connection factory, shared config): `src/shared/lib/socket.ts`.
+- **Chat-specific** subscribe/unsubscribe, event handlers, mapping socket payloads: `src/features/chat/socket/` only.
+
+## Standard events
+
+Use these names for real-time chat (align client/server):
+
+| Event | Direction / meaning |
+|-------|---------------------|
+| `message:new` | Incoming new message |
+| `message:send` | Outgoing send payload |
+| `typing:start` | Typing indicator on |
+| `typing:stop` | Typing indicator off |
+
+## Example
+
+```ts
+// BAD — constructing WebSocket URL in a random component
+new WebSocket(url);
+
+// GOOD — shared/lib/socket.ts exports createSocketClient(options)
+// GOOD — features/chat/socket/chatSocket.handlers.ts registers handlers via that client
+```
+
+Do not import `features/chat/socket` from `shared/`.

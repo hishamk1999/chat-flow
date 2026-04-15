@@ -1,0 +1,36 @@
+---
+description: Per-feature folders, hooks, and presentational components
+globs: src/features/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Feature module layout
+
+Each feature lives under `src/features/<name>/`:
+
+| Folder | Role |
+|--------|------|
+| `components/` | Feature UI. **Presentational** — no direct `fetch`, axios, or RTK calls. |
+| `hooks/` | **Required.** Side effects, orchestration, calling `api/` and `socket/`. |
+| `api/` | HTTP/API calls (RTK Query or axios). Isolated here. |
+| `socket/` | WebSocket subscribe/send logic when needed. |
+| `mappers/` | DTO → ViewModel (`*.mapper.ts`, `mapXToViewModel`). |
+
+## Rules
+
+- **Never** call APIs from `components/` — only from `hooks/` via `api/` or `socket/`.
+- Prefer a small **section** component in `components/` that only calls a hook and passes ViewModels to a presentational child if you need both.
+
+## Example
+
+```tsx
+// BAD — MessageList.tsx
+import { getMessages } from '../api/messagesApi';
+useEffect(() => { getMessages(); }, []);
+
+// GOOD — useMessages.ts
+import { fetchMessages } from '../api/messagesApi';
+import { mapMessageToViewModel } from '../mappers/message.mapper';
+
+// GOOD — MessageList.tsx — receives MessageVM[] as props only
+```

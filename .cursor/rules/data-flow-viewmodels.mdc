@@ -1,0 +1,44 @@
+---
+description: Component → Hook → API/Socket; ViewModels in UI only
+globs: src/{features,pages}/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Data flow and ViewModels
+
+## Mandatory flow
+
+`Component → Hook → API/Socket → (Store) → UI`
+
+- **Never** use raw API responses in UI — always map through a mapper to a `*VM` type.
+- **Never** call APIs inside presentational components — only inside `hooks/`.
+- When using global state, hooks read/write the store; UI still consumes **ViewModels**.
+
+## Naming
+
+| Artifact | Pattern |
+|----------|---------|
+| Mapper file | `something.mapper.ts` |
+| Mapper function | `mapSomethingToViewModel` |
+| ViewModel type | `SomethingVM` |
+
+## Example
+
+```ts
+// mappers/message.mapper.ts
+export type MessageVM = { id: string; preview: string };
+export function mapMessageToViewModel(dto: MessageDto): MessageVM {
+  return { id: dto.id, preview: dto.body.slice(0, 80) };
+}
+```
+
+```tsx
+// hooks/useMessages.ts — maps before exposing to components
+const vms = data.map(mapMessageToViewModel);
+return { messages: vms };
+```
+
+```tsx
+// BAD — UI uses DTO field names / shape from backend directly in markup logic
+message.raw_payload_xyz
+```

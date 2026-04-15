@@ -1,0 +1,44 @@
+---
+description: Feature-based src layers, folders, and import boundaries
+alwaysApply: true
+---
+
+# Architecture layers (`src/`)
+
+## Folder map
+
+| Layer | Path | Responsibility |
+|--------|------|----------------|
+| App | `src/app/` | Providers, global store, routing only. No UI components, no feature business logic. |
+| Pages | `src/pages/` | Route-level composition only. Compose features into layouts. |
+| Features | `src/features/` | Business logic, feature UI, API/socket per feature. |
+| Entities | `src/entities/` | Domain models and types. **Pure TypeScript** — no React, no hooks. |
+| Shared | `src/shared/` | Reusable UI, hooks, lib, constants. **Generic** — must not depend on features. |
+
+## Import matrix
+
+| From → To | app | pages | features | entities | shared |
+|-------------|-----|-------|----------|----------|--------|
+| **pages** | ✓ | internal | ✓ | — | ✓ |
+| **features** | — | — | internal only | ✓ | ✓ |
+| **shared** | — | — | **✗** | ✓ (types only if needed) | internal |
+| **entities** | **✗** | **✗** | **✗** | internal | **✗** |
+
+**Forbidden:** `features/*` importing another `features/*` directly. **Forbidden:** `shared/*` importing `features/*`.
+
+## Examples
+
+```tsx
+// BAD — page calls API
+// pages/ChatPage.tsx
+const data = await fetch('/api/chat'); // never
+
+// GOOD — page only composes feature entry
+// pages/ChatPage.tsx
+import { ChatWelcomeSection } from '@/features/chat/components/ChatWelcomeSection';
+export function ChatPage() {
+  return <ChatWelcomeSection />;
+}
+```
+
+Use path alias `@/` → `src/` if configured; otherwise use relative imports consistent with the repo.
